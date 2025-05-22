@@ -1,0 +1,42 @@
+<html>
+    <head>
+        <script src="https://aframe.io/releases/1.0.0/aframe.min.js"></script>
+        <script
+        src="https://gftruj.github.io/webzamples/aframe/controls/oculus-thumbstick-controls.js"|
+        </script>
+    </head>
+    <body>
+        <a-scene id="s1" background="color:#0d0928" shadow="type: pcfsoft">
+            <a-plane color="#2a1c0e" height="5000" width="5000" rotation="-90 0 0" shadow> 
+            </a-plane>
+            <a-entity id="rig" position="15 0 60">
+                <a-camera active="true"></a-camera>
+                <a-entity oculus-touch-controls="hand: right" oculus-thumbstick-controls> 
+                </a-entity>
+            </a-entity>
+            <a-sphere src="url(assets/moon.jpg)" radius="500" position="500 5000 1000">
+            </a-sphere>
+            <a-entity position="5 50 10" light="type: directional; intensity: 0.5;
+                    castShadow: true; shadowCameraBottom: -250; shadowCameraTop: 250; 
+                    shadowCameraLeft: -250; shadowCameraRight:250">
+            </a-entity>
+            <a-light type="ambient" intensity="0.25"></a-light>
+        </a-scene>
+        
+        <script>
+            var scene = document.querySelector('a-scene'); 
+            for (var i = 0; i < 100; i++) {
+                var tree = document.createElement('a-entity');
+                var r = Math.random() * 25+ 75;
+                var a = Math.random() * 360;
+                var s = Math.random() / 100+ 0.01;
+                tree.setAttribute('gltf-model', 'url(assets/coconut_tree.glb)');
+                tree.setAttribute('position', r * Math.cos(a) + '0 ' + r * Math.sin(a));
+                tree.setAttribute('rotation', '0 ' + Math.random() * 180 + ' 0');
+                tree.setAttribute('scale', s + ' ' + s + ' '+ s);
+                tree.setAttribute('shadow', 'receive: false');
+                scene.appendChild(tree);
+            }
+        </script>              
+    </body>
+</html>
