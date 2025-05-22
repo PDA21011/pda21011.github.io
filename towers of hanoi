@@ -1,0 +1,39 @@
+<
+
+<head>
+    <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.4/dist/aframe-extras.min.js"></script>
+    <script>
+        AFRAME.registerComponent('testing', {
+            init: function () {
+                this.el.addEventListener('click', e => {
+                    this.el.setAttribute('animation-mixer', { timeScale: 1});
+                });
+</script>
+    <style>
+        h1 { text-align: center; }
+        h3 { text-align: center; }
+        a-scene { width: 50%; height: 50%; border: dotted silver 1px; }
+    </style>
+</head>
+
+<body>
+    <h1>Towers of Hanoi</h1>
+    <h3>Ορέστης Καβουρίνος, Ελπίδα Γιαννουρή, Ελεάννα Μητσοπούλου</h3>
+    <hr />
+    <P><strong>Σενάριο:Ο στόχος είναι να μεταφερθεί ολόκληρη η στοίβα των δίσκων από την αρχική ράβδο σε μία άλλη, ακολουθώντας τρεις βασικούς κανόνες:Μπορείς να μετακινήσεις μόνο έναν δίσκο τη φορά.Κάθε δίσκος μπορεί να τοποθετηθεί μόνο πάνω σε μεγαλύτερο δίσκο ή σε άδεια ράβδο.Δεν επιτρέπεται να τοποθετήσεις μεγαλύτερο δίσκο πάνω σε μικρότερο</strong>...</P>
+    <hr />
+    <div align="center">
+    <!-- Σκηνή:Βρίσκονται στιβαγμενοι οι δίσκοι στον πρώτο πύργο. start game στην επιγραφή -->
+    <a-scene cursor="rayOrigin: mouse" background="color:cadetblue" ondblclick="this.requestFullscreen();" embedded>
+        
+    </a-scene>
+    </div>
+  
+    <hr />
+    <p><strong>Οδηγίες:Μπορείς να μετακινήσεις μόνο έναν δίσκο τη φορά.Κάθε δίσκος μπορεί να τοποθετηθεί μόνο πάνω σε μεγαλύτερο δίσκο ή σε άδεια ράβδο.Δεν επιτρέπεται να τοποθετήσεις μεγαλύτερο δίσκο πάνω σε μικρότερο<strong>...</p>
+    <hr />
+    <p><strong>Credits:</strong></p>
+</body>
+
+</html>
