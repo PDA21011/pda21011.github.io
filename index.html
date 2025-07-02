@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Towers of Hanoi</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --primary-hover: #45a049;
+            --secondary-color: #f39c12;
+            --disabled-color: #7f8c8d;
+            --text-color: white;
+            --background-dark: rgba(0, 0, 0, 0.7);
+            --background-light: rgba(0, 0, 0, 0.5);
+            --optimal-color: #FFD700;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            color: var(--text-color);
+            background: #1a2a6c;
+            touch-action: manipulation;
+        }
+        
+        #start-screen, #win-screen, #excellent-screen, #mode-screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: var(--background-dark);
+            z-index: 100;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        #win-screen, #excellent-screen, #mode-screen {
+            display: none;
+        }
+        
+        h1 {
+            font-size: clamp(32px, 5vw, 48px);
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        button {
+            padding: 12px 24px;
+            font-size: clamp(16px, 3vw, 20px);
+            background: var(--primary-color);
+            color: var(--text-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 160px;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        #ui-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 10;
+            pointer-events: none;
+            flex-wrap: wrap;
+        }
+        
+        .ui-panel {
+            background: var(--background-light);
+            padding: 8px 16px;
+            border-radius: 5px;
+            font-size: clamp(14px, 2.5vw, 18px);
+            margin: 5px;
+            white-space: nowrap;
+        }
+        
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .credits, .scenario {
+            margin-top: 15px;
+            font-size: clamp(12px, 2vw, 16px);
+            text-align: center;
+            max-width: 90%;
+            line-height: 1.4;
+        }
+        
+        .optimal-moves {
+            color: var(--optimal-color);
+            font-weight: bold;
+        }
+        
+        .action-buttons {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+        
+        .action-button {
+            padding: 10px 20px;
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .action-button:hover {
+            background: #e67e22;
+            transform: translateY(-2px);
+        }
+        
+        .action-button:disabled {
+            background: var(--disabled-color);
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        #menu-button {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            z-index: 10;
+            font-size: 16px;
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        .theme-selector {
+            position: absolute;
+            bottom: 70px;
+            left: 20px;
+            background: var(--background-light);
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+            z-index: 20;
+        }
+        
+        .theme-option {
+            width: 60px;
+            height: 60px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            display: inline-block;
+        }
+        
+        .theme-option:hover {
+            transform: scale(1.1);
+        }
+        
+        @media (max-width: 768px) {
+            .action-buttons {
+                bottom: 10px;
+                left: 10px;
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .action-button {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+            
+            #menu-button {
+                bottom: 10px;
+                right: 10px;
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+            
+            .theme-selector {
+                bottom: 120px;
+                left: 10px;
+                width: calc(100% - 20px);
+            }
+            
+            .theme-option {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="start-screen">
+        <h1>3D TOWERS OF HANOI</h1>
+        <button id="start-button">START GAME</button>
+        <div class="credits">Credits: Ελπίδα Γιαννουρή, Ελεάννα Μητσοπούλου, Ορέστης Καβουρίνος</div>
+        <div class="scenario">Σενάριο: Σκοπός είναι να μεταφερθούν όλοι οι δίσκοι από την πρώτη ράβδο στην τρίτη, μετακινώντας έναν δίσκο κάθε φορά και χωρίς ποτέ να τοποθετείται μεγαλύτερος δίσκος πάνω σε μικρότερο.</div>
+    </div>
+    
+    <div id="mode-screen">
+        <h1>SELECT GAME MODE</h1>
+        <button id="classic-mode">CLASSIC MODE</button>
+        <button id="freeplay-mode">FREE PLAY MODE</button>
+        <button id="back-button">BACK</button>
+    </div>
+    
+    <div id="ui-container">
+        <div id="level-display" class="ui-panel">LEVEL 1 <span class="optimal-moves">(Optimal: 7)</span></div>
+        <div id="moves-counter" class="ui-panel">Moves: <span id="move-count">0</span></div>
+    </div>
+    
+    <div class="action-buttons">
+        <button id="undo-button" class="action-button" disabled>UNDO</button>
+        <button id="solve-button" class="action-button" disabled>SOLVE</button>
+        <button id="theme-button" class="action-button">THEMES</button>
+    </div>
+    
+    <button id="menu-button">MENU</button>
+    
+    <div class="theme-selector" id="theme-selector">
+        <div class="theme-option" style="background-color: #1a2a6c;" data-theme="classic"></div>
+        <div class="theme-option" style="background-color: #a8d0e6;" data-theme="winter"></div>
+        <div class="theme-option" style="background-color: #f4a261;" data-theme="autumn"></div>
+        <div class="theme-option" style="background-color: #000000;" data-theme="space"></div>
+    </div>
+    
+    <div id="win-screen">
+        <h1>LEVEL COMPLETE!</h1>
+        <p id="moves-result">You solved it in 0 moves!</p>
+        <div>
+            <button id="next-level-button">NEXT LEVEL</button>
+            <button id="replay-level-button">REPLAY LEVEL</button>
+            <button id="to-menu-button">MAIN MENU</button>
+        </div>
+    </div>
+    
+    <div id="excellent-screen">
+        <h1>EXCELLENT!</h1>
+        <p>You completed all levels!</p>
+        <button id="restart-button">PLAY AGAIN</button>
+        <button id="to-menu-button-2">MAIN MENU</button>
+    </div>
+    
+    <div id="canvas-container"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script>
+        // Game configuration
+        const CONFIG = {
+            colors: [0xff5252, 0xffd740, 0x69f0ae, 0x40c4ff, 0xe040fb, 0xff4081],
+            optimalMoves: [7, 15, 31, 63, 127, 255, 511, 1023], // For levels 1-8
+            maxLevel: 8,
+            discHeight: 0.5,
+            getTowerPositions: function(numDiscs) {
+                // Increase spacing for higher levels
+                if (numDiscs <= 5) return [-6, 0, 6];
+                if (numDiscs === 6) return [-7, 0, 7];
+                if (numDiscs === 7) return [-8, 0, 8];
+                return [-9, 0, 9]; // For 8 discs
+            },
+            getBaseRadius: function(numDiscs) {
+                // Increase base size for more discs
+                if (numDiscs <= 5) return 2;
+                if (numDiscs === 6) return 2.5;
+                return 3; // For 7-8 discs
+            },
+            getDiscRadius: function(size, numDiscs) {
+                // Adjust disc sizes based on number of discs
+                const baseSize = numDiscs <= 5 ? 0.4 : (numDiscs === 6 ? 0.35 : 0.3);
+                return size * baseSize + 0.5;
+            },
+            highlightColor: 0x00ff00,
+            validTowerColor: 0x333300
+        };
+
+        // Seasonal Themes
+        const THEMES = {
+            classic: {
+                name: "Classic",
+                background: 0x1a2a6c,
+                ground: 0x333333,
+                tower: 0x8B4513
+            },
+            winter: {
+                name: "Winter",
+                background: 0xa8d0e6,
+                ground: 0xffffff,
+                tower: 0x7c7c7c
+            },
+            autumn: {
+                name: "Autumn",
+                background: 0xf4a261,
+                ground: 0x6a4c2b,
+                tower: 0x6a4c2b
+            },
+            space: {
+                name: "Space",
+                background: 0x000000,
+                ground: 0x2d3436,
+                tower: 0x636e72
+            }
+        };
+
+        // Game state
+        const state = {
+            currentLevel: 1,
+            moves: 0,
+            selectedDisc: null,
+            moveHistory: [],
+            isMobile: /Mobi|Android/i.test(navigator.userAgent),
+            gameMode: 'classic',
+            currentTheme: 'classic',
+            isSolving: false,
+            audioContext: null,
+            spatialAudioEnabled: false,
+            currentNumDiscs: 3,
+            towerBases: [] // Track tower bases separately
+        };
+
+        // Three.js variables
+        let scene, camera, renderer, controls;
+        let towers = [];
+        let discs = [];
+        let discMeshes = [];
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        
+        // DOM elements
+        const elements = {
+            startScreen: document.getElementById('start-screen'),
+            winScreen: document.getElementById('win-screen'),
+            excellentScreen: document.getElementById('excellent-screen'),
+            modeScreen: document.getElementById('mode-screen'),
+            startButton: document.getElementById('start-button'),
+            classicModeButton: document.getElementById('classic-mode'),
+            freeplayModeButton: document.getElementById('freeplay-mode'),
+            backButton: document.getElementById('back-button'),
+            nextLevelButton: document.getElementById('next-level-button'),
+            replayLevelButton: document.getElementById('replay-level-button'),
+            restartButton: document.getElementById('restart-button'),
+            toMenuButton: document.getElementById('to-menu-button'),
+            toMenuButton2: document.getElementById('to-menu-button-2'),
+            menuButton: document.getElementById('menu-button'),
+            levelDisplay: document.getElementById('level-display'),
+            moveCountDisplay: document.getElementById('move-count'),
+            undoButton: document.getElementById('undo-button'),
+            solveButton: document.getElementById('solve-button'),
+            themeButton: document.getElementById('theme-button'),
+            themeSelector: document.getElementById('theme-selector'),
+            movesResult: document.getElementById('moves-result'),
+            canvasContainer: document.getElementById('canvas-container')
+        };
+
+        // Initialize Three.js scene
+        function initScene() {
+            // Scene setup
+            scene = new THREE.Scene();
+            applyTheme();
+            
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 10, 15);
+            
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: true,
+                powerPreference: "high-performance"
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            elements.canvasContainer.appendChild(renderer.domElement);
+            
+            // Controls setup
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 10;
+            controls.maxDistance = 30;
+            controls.maxPolarAngle = Math.PI / 2;
+            if (state.isMobile) {
+                controls.enableZoom = false;
+                controls.enablePan = false;
+            }
+            
+            // Lighting
+            setupLighting();
+            
+            // Ground
+            setupGround();
+            
+            // Event listeners
+            setupEventListeners();
+        }
+
+        function applyTheme() {
+            const theme = THEMES[state.currentTheme];
+            scene.background = new THREE.Color(theme.background);
+            
+            // Update existing towers if any
+            towers.forEach(tower => {
+                tower.material.color.setHex(theme.tower);
+            });
+            
+            // Update existing bases if any
+            state.towerBases.forEach(base => {
+                base.material.color.setHex(theme.tower);
+            });
+            
+            // Update existing discs if any (keep their colors)
+            if (discMeshes.length > 0) {
+                discs.forEach((disc, i) => {
+                    disc.mesh.material.color.setHex(CONFIG.colors[i % CONFIG.colors.length]);
+                });
+            }
+        }
+
+        function setupLighting() {
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 10, 7);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 1024;
+            directionalLight.shadow.mapSize.height = 1024;
+            scene.add(directionalLight);
+        }
+
+        function setupGround() {
+            const theme = THEMES[state.currentTheme];
+            const groundGeometry = new THREE.PlaneGeometry(40, 30); // Increased ground size for larger levels
+            const groundMaterial = new THREE.MeshStandardMaterial({ 
+                color: theme.ground,
+                roughness: 0.8,
+                metalness: 0.2
+            });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+        }
+
+        function setupEventListeners() {
+            renderer.domElement.addEventListener('click', onClick, false);
+            
+            if (state.isMobile) {
+                renderer.domElement.addEventListener('touchstart', onTouch, false);
+            }
+        }
+
+        // Game functions
+        function startGame() {
+            elements.startScreen.style.display = 'none';
+            elements.modeScreen.style.display = 'flex';
+        }
+
+        function returnToMenu() {
+            // Clear current game state
+            clearScene();
+            
+            // Hide all game screens
+            elements.winScreen.style.display = 'none';
+            elements.excellentScreen.style.display = 'none';
+            
+            // Show start screen
+            elements.startScreen.style.display = 'flex';
+        }
+
+        function startClassicMode() {
+            state.gameMode = 'classic';
+            state.currentLevel = 1;
+            state.moves = 0;
+            state.moveHistory = [];
+            elements.modeScreen.style.display = 'none';
+            elements.undoButton.disabled = true;
+            elements.solveButton.disabled = false;
+            state.currentNumDiscs = state.currentLevel + 2;
+            setupLevel(state.currentNumDiscs);
+            animate();
+        }
+
+        function startFreePlayMode() {
+            state.gameMode = 'freeplay';
+            const numDiscs = prompt("Enter number of discs (3-8):", "5");
+            const discsCount = Math.min(8, Math.max(3, parseInt(numDiscs) || 5));
+            
+            state.currentLevel = discsCount; // For display purposes
+            state.moves = 0;
+            state.moveHistory = [];
+            elements.modeScreen.style.display = 'none';
+            elements.undoButton.disabled = true;
+            elements.solveButton.disabled = false;
+            state.currentNumDiscs = discsCount;
+            
+            // Calculate optimal moves for free play (2^n - 1)
+            const optimal = Math.pow(2, discsCount) - 1;
+            elements.levelDisplay.innerHTML = `DISCS: ${discsCount} <span class="optimal-moves">(Optimal: ${optimal})</span>`;
+            
+            setupLevel(discsCount);
+            animate();
+        }
+
+        function setupLevel(numDiscs) {
+            // Clear previous level
+            clearScene();
+            
+            // Reset game state
+            state.moves = 0;
+            state.selectedDisc = null;
+            elements.moveCountDisplay.textContent = state.moves;
+            
+            if (state.gameMode === 'classic') {
+                elements.levelDisplay.innerHTML = `LEVEL ${state.currentLevel} <span class="optimal-moves">(Optimal: ${CONFIG.optimalMoves[state.currentLevel-1]})</span>`;
+            }
+            
+            elements.undoButton.disabled = true;
+            elements.solveButton.disabled = false;
+            
+            // Create towers
+            createTowers(numDiscs);
+            
+            // Create discs
+            createDiscs(numDiscs);
+        }
+
+        function clearScene() {
+            // Remove all discs
+            discMeshes.forEach(mesh => {
+                scene.remove(mesh);
+                // Dispose of materials and geometries to prevent memory leaks
+                mesh.material.dispose();
+                mesh.geometry.dispose();
+            });
+            discMeshes = [];
+            discs = [];
+            
+            // Remove all towers
+            towers.forEach(tower => {
+                scene.remove(tower);
+                tower.material.dispose();
+                tower.geometry.dispose();
+            });
+            towers = [];
+            
+            // Remove all tower bases
+            state.towerBases.forEach(base => {
+                scene.remove(base);
+                base.material.dispose();
+                base.geometry.dispose();
+            });
+            state.towerBases = [];
+        }
+
+        function createTowers(numDiscs) {
+            const theme = THEMES[state.currentTheme];
+            const towerGeometry = new THREE.CylinderGeometry(0.5, 0.5, 5, 32);
+            const towerMaterial = new THREE.MeshStandardMaterial({ 
+                color: theme.tower,
+                roughness: 0.7,
+                metalness: 0.3
+            });
+            
+            const towerPositions = CONFIG.getTowerPositions(numDiscs);
+            const baseRadius = CONFIG.getBaseRadius(numDiscs);
+            
+            for (let i = 0; i < 3; i++) {
+                // Tower pole
+                const tower = new THREE.Mesh(towerGeometry, towerMaterial);
+                tower.position.set(towerPositions[i], 2.5, 0);
+                tower.castShadow = true;
+                tower.receiveShadow = true;
+                tower.userData = { isTower: true, towerIndex: i };
+                scene.add(tower);
+                towers.push(tower);
+                
+                // Tower base - now with dynamic size and proper tracking
+                const baseGeometry = new THREE.CylinderGeometry(baseRadius, baseRadius, 0.5, 32);
+                const base = new THREE.Mesh(baseGeometry, towerMaterial);
+                base.position.set(towerPositions[i], 0, 0);
+                base.castShadow = true;
+                base.receiveShadow = true;
+                scene.add(base);
+                state.towerBases.push(base);
+            }
+        }
+
+        function createDiscs(numDiscs) {
+            const towerPositions = CONFIG.getTowerPositions(numDiscs);
+            
+            for (let i = numDiscs; i >= 1; i--) {
+                const discRadius = CONFIG.getDiscRadius(i, numDiscs);
+                const discGeometry = new THREE.CylinderGeometry(discRadius, discRadius, CONFIG.discHeight, 32);
+                const discMaterial = new THREE.MeshStandardMaterial({ 
+                    color: CONFIG.colors[(i - 1) % CONFIG.colors.length],
+                    roughness: 0.4,
+                    metalness: 0.6
+                });
+                
+                const disc = new THREE.Mesh(discGeometry, discMaterial);
+                disc.position.set(
+                    towerPositions[0], 
+                    CONFIG.discHeight / 2 + (numDiscs - i) * CONFIG.discHeight, 
+                    0
+                );
+                disc.castShadow = true;
+                disc.receiveShadow = true;
+                disc.userData = {
+                    isDisc: true,
+                    size: i,
+                    towerIndex: 0,
+                    position: numDiscs - i
+                };
+                scene.add(disc);
+                discMeshes.push(disc);
+                
+                discs.push({
+                    mesh: disc,
+                    size: i,
+                    towerIndex: 0,
+                    position: numDiscs - i
+                });
+            }
+        }
+
+        function onClick(event) {
+            if (state.isSolving) return;
+            
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            handleInteraction();
+        }
+
+        function onTouch(event) {
+            if (state.isSolving) return;
+            
+            event.preventDefault();
+            const touch = event.touches[0];
+            mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+            
+            handleInteraction();
+        }
+
+        function handleInteraction() {
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children);
+            
+            if (intersects.length > 0) {
+                const clickedObject = intersects[0].object;
+                
+                if (clickedObject.userData.isDisc) {
+                    handleDiscClick(clickedObject);
+                } else if (clickedObject.userData.isTower) {
+                    handleTowerClick(clickedObject);
+                }
+            }
+        }
+
+        function handleDiscClick(discMesh) {
+            // Deselect if clicking the same disc
+            if (state.selectedDisc && state.selectedDisc.mesh === discMesh) {
+                discMesh.material.emissive.setHex(0x000000);
+                state.selectedDisc = null;
+                return;
+            }
+            
+            // Deselect previous disc if any
+            if (state.selectedDisc) {
+                state.selectedDisc.mesh.material.emissive.setHex(0x000000);
+            }
+            
+            // Find the disc object
+            const discObj = discs.find(d => d.mesh === discMesh);
+            const topDisc = getTopDisc(discObj.towerIndex);
+            
+            // Only allow selecting the top disc
+            if (topDisc && topDisc.mesh === discMesh) {
+                state.selectedDisc = discObj;
+                discMesh.material.emissive.setHex(CONFIG.highlightColor);
+                
+                // Highlight valid towers
+                towers.forEach(tower => {
+                    const topDisc = getTopDisc(tower.userData.towerIndex);
+                    if (!topDisc || discObj.size < topDisc.size) {
+                        tower.material.emissive.setHex(CONFIG.validTowerColor);
+                        setTimeout(() => {
+                            tower.material.emissive.setHex(0x000000);
+                        }, 500);
+                    }
+                });
+            }
+        }
+
+        function handleTowerClick(towerMesh) {
+            if (!state.selectedDisc || state.isSolving) return;
+            
+            const towerIndex = towerMesh.userData.towerIndex;
+            const topDisc = getTopDisc(towerIndex);
+            const towerPositions = CONFIG.getTowerPositions(state.currentNumDiscs);
+            
+            // Check if move is valid
+            if (!topDisc || state.selectedDisc.size < topDisc.size) {
+                // Update move count
+                state.moves++;
+                elements.moveCountDisplay.textContent = state.moves;
+                
+                // Record move for undo
+                state.moveHistory.push({
+                    disc: state.selectedDisc,
+                    fromTower: state.selectedDisc.towerIndex,
+                    toTower: towerIndex,
+                    fromPosition: state.selectedDisc.position
+                });
+                
+                // Calculate new position
+                const newPosition = topDisc ? topDisc.position + 1 : 0;
+                
+                // Update disc state
+                state.selectedDisc.towerIndex = towerIndex;
+                state.selectedDisc.position = newPosition;
+                
+                // Move disc visually
+                state.selectedDisc.mesh.position.x = towerPositions[towerIndex];
+                state.selectedDisc.mesh.position.y = CONFIG.discHeight / 2 + newPosition * CONFIG.discHeight;
+                state.selectedDisc.mesh.material.emissive.setHex(0x000000);
+                
+                // Enable undo button
+                elements.undoButton.disabled = false;
+                
+                // Check for win condition
+                if (checkWin(towerIndex)) {
+                    setTimeout(() => {
+                        createConfetti();
+                        elements.winScreen.style.display = 'flex';
+                        
+                        if (state.gameMode === 'classic') {
+                            elements.movesResult.innerHTML = 
+                                `You solved it in ${state.moves} moves!<br>
+                                <span class="optimal-moves">Optimal: ${CONFIG.optimalMoves[state.currentLevel-1]}</span>`;
+                        } else {
+                            const optimal = Math.pow(2, discs.length) - 1;
+                            elements.movesResult.innerHTML = 
+                                `You solved it in ${state.moves} moves!<br>
+                                <span class="optimal-moves">Optimal: ${optimal}</span>`;
+                        }
+                    }, 500);
+                }
+                
+                state.selectedDisc = null;
+            }
+        }
+
+        function undoMove() {
+            if (state.moveHistory.length === 0 || state.isSolving) return;
+            
+            const lastMove = state.moveHistory.pop();
+            const disc = lastMove.disc;
+            const towerPositions = CONFIG.getTowerPositions(state.currentNumDiscs);
+            
+            // Restore disc state
+            disc.towerIndex = lastMove.fromTower;
+            disc.position = lastMove.fromPosition;
+            
+            // Move disc visually
+            disc.mesh.position.x = towerPositions[lastMove.fromTower];
+            disc.mesh.position.y = CONFIG.discHeight / 2 + lastMove.fromPosition * CONFIG.discHeight;
+            
+            // Update move count and undo button state
+            state.moves--;
+            elements.moveCountDisplay.textContent = state.moves;
+            elements.undoButton.disabled = state.moveHistory.length === 0;
+        }
+
+        // Solution Generator using iterative approach
+        function solvePuzzle() {
+            if (state.isSolving) return;
+            
+            state.isSolving = true;
+            elements.solveButton.disabled = true;
+            elements.undoButton.disabled = true;
+            
+            const numDiscs = discs.length;
+            const solution = generateSolution(numDiscs, 0, 2, 1);
+            
+            animateSolution(solution, 0);
+        }
+
+        function generateSolution(n, from, to, aux) {
+            const stack = [];
+            const moves = [];
+            
+            stack.push({ n, from, to, aux, stage: 0 });
+            
+            while (stack.length > 0) {
+                const current = stack.pop();
+                
+                if (current.n === 1) {
+                    moves.push({ from: current.from, to: current.to });
+                } else {
+                    if (current.stage === 0) {
+                        current.stage = 1;
+                        stack.push(current);
+                        stack.push({ n: current.n - 1, from: current.from, to: current.aux, aux: current.to, stage: 0 });
+                    } else if (current.stage === 1) {
+                        moves.push({ from: current.from, to: current.to });
+                        stack.push({ n: current.n - 1, from: current.aux, to: current.to, aux: current.from, stage: 0 });
+                    }
+                }
+            }
+            
+            return moves;
+        }
+
+        function animateSolution(solution, index) {
+            if (index >= solution.length) {
+                state.isSolving = false;
+                elements.solveButton.disabled = false;
+                return;
+            }
+            
+            const move = solution[index];
+            const fromTower = move.from;
+            const toTower = move.to;
+            
+            // Find the top disc on the from tower
+            const topDisc = getTopDisc(fromTower);
+            if (!topDisc) {
+                animateSolution(solution, index + 1);
+                return;
+            }
+            
+            // Find position on target tower
+            const targetTopDisc = getTopDisc(toTower);
+            const newPosition = targetTopDisc ? targetTopDisc.position + 1 : 0;
+            
+            // Animate the move
+            animateDiscMove(topDisc, fromTower, toTower, newPosition, () => {
+                // Update disc state
+                topDisc.towerIndex = toTower;
+                topDisc.position = newPosition;
+                
+                // Continue with next move
+                setTimeout(() => {
+                    animateSolution(solution, index + 1);
+                }, 300);
+            });
+        }
+
+        function animateDiscMove(disc, fromTower, toTower, newPosition, callback) {
+            const duration = 500; // ms
+            const startTime = Date.now();
+            const towerPositions = CONFIG.getTowerPositions(state.currentNumDiscs);
+            
+            const startPos = disc.mesh.position.clone();
+            const endPos = new THREE.Vector3(
+                towerPositions[toTower],
+                CONFIG.discHeight / 2 + newPosition * CONFIG.discHeight,
+                0
+            );
+            
+            // Lift up
+            const liftPos = new THREE.Vector3(
+                startPos.x,
+                startPos.y + 5,
+                startPos.z
+            );
+            
+            // Move horizontally
+            const movePos = new THREE.Vector3(
+                endPos.x,
+                liftPos.y,
+                endPos.z
+            );
+            
+            function updateAnimation() {
+                const elapsed = Date.now() - startTime;
+                const progress = elapsed / duration;
+                
+                if (progress < 0.33) {
+                    // First phase: lift up
+                    const phaseProgress = progress / 0.33;
+                    disc.mesh.position.lerpVectors(startPos, liftPos, phaseProgress);
+                } else if (progress < 0.66) {
+                    // Second phase: move horizontally
+                    const phaseProgress = (progress - 0.33) / 0.33;
+                    disc.mesh.position.lerpVectors(liftPos, movePos, phaseProgress);
+                } else if (progress < 1) {
+                    // Third phase: lower down
+                    const phaseProgress = (progress - 0.66) / 0.34;
+                    disc.mesh.position.lerpVectors(movePos, endPos, phaseProgress);
+                } else {
+                    // Animation complete
+                    disc.mesh.position.copy(endPos);
+                    callback();
+                    return;
+                }
+                
+                requestAnimationFrame(updateAnimation);
+            }
+            
+            updateAnimation();
+        }
+
+        function toggleThemeSelector() {
+            elements.themeSelector.style.display = 
+                elements.themeSelector.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function setTheme(themeName) {
+            state.currentTheme = themeName;
+            applyTheme();
+            elements.themeSelector.style.display = 'none';
+        }
+
+        function createConfetti() {
+            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff'];
+            const confettiCount = state.isMobile ? 75 : 150;
+            
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = -10 + 'px';
+                document.body.appendChild(confetti);
+                
+                const animation = confetti.animate([
+                    { top: '-10px', transform: 'rotate(0deg)' },
+                    { top: '100vh', transform: 'rotate(360deg)' }
+                ], {
+                    duration: 2000 + Math.random() * 3000,
+                    easing: 'cubic-bezier(0.1,0.8,0.9,1)'
+                });
+                
+                animation.onfinish = () => confetti.remove();
+            }
+        }
+
+        function getTopDisc(towerIndex) {
+            const towerDiscs = discs.filter(d => d.towerIndex === towerIndex);
+            if (towerDiscs.length === 0) return null;
+            return towerDiscs.reduce((top, disc) => disc.position > top.position ? disc : top);
+        }
+
+        function checkWin(towerIndex) {
+            if (towerIndex === 0) return false;
+            const numDiscs = state.gameMode === 'classic' ? state.currentNumDiscs : discs.length;
+            const towerDiscs = discs.filter(d => d.towerIndex === towerIndex);
+            return towerDiscs.length === numDiscs;
+        }
+
+        function nextLevel() {
+            state.currentLevel++;
+            if (state.currentLevel > CONFIG.maxLevel && state.gameMode === 'classic') {
+                elements.winScreen.style.display = 'none';
+                elements.excellentScreen.style.display = 'flex';
+            } else {
+                elements.winScreen.style.display = 'none';
+                state.moveHistory = [];
+                state.currentNumDiscs = state.currentLevel + 2;
+                setupLevel(state.currentNumDiscs);
+            }
+        }
+
+        function replayLevel() {
+            elements.winScreen.style.display = 'none';
+            state.moveHistory = [];
+            setupLevel(state.gameMode === 'classic' ? state.currentNumDiscs : discs.length);
+        }
+
+        function restartGame() {
+            elements.excellentScreen.style.display = 'none';
+            startGame();
+        }
+
+        function backToStart() {
+            elements.modeScreen.style.display = 'none';
+            elements.startScreen.style.display = 'flex';
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // Initialize game
+        initScene();
+        
+        // Event listeners
+        elements.startButton.addEventListener('click', startGame);
+        elements.classicModeButton.addEventListener('click', startClassicMode);
+        elements.freeplayModeButton.addEventListener('click', startFreePlayMode);
+        elements.backButton.addEventListener('click', backToStart);
+        elements.nextLevelButton.addEventListener('click', nextLevel);
+        elements.replayLevelButton.addEventListener('click', replayLevel);
+        elements.restartButton.addEventListener('click', restartGame);
+        elements.toMenuButton.addEventListener('click', returnToMenu);
+        elements.toMenuButton2.addEventListener('click', returnToMenu);
+        elements.menuButton.addEventListener('click', returnToMenu);
+        elements.undoButton.addEventListener('click', undoMove);
+        elements.solveButton.addEventListener('click', solvePuzzle);
+        elements.themeButton.addEventListener('click', toggleThemeSelector);
+        
+        // Theme selector event delegation
+        elements.themeSelector.addEventListener('click', (e) => {
+            if (e.target.classList.contains('theme-option')) {
+                setTheme(e.target.dataset.theme);
+            }
+        });
+        
+        window.addEventListener('resize', onWindowResize);
+    </script>
+</body>
+</html>
