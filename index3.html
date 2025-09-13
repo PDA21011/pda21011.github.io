@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedagogical Digital Arts II - Generative Glitch Art</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            color: #0ff;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(45deg, #000, #001119, #000);
+        }
+        
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+            letter-spacing: 2px;
+            z-index: 10;
+            color: #f0f;
+            padding: 10px 20px;
+            border: 1px solid #0ff;
+            background: rgba(0, 0, 0, 0.7);
+            box-shadow: 0 0 15px #0ff;
+        }
+        
+        .subtitle {
+            font-size: 1.4rem;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #0ff;
+            text-shadow: 0 0 5px #0ff;
+            z-index: 10;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #f0f;
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            border: 2px solid #0ff;
+            box-shadow: 0 0 15px #0ff, 0 0 25px #f0f;
+            overflow: hidden;
+            border-radius: 5px;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 60vh;
+            background: #000;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 10px;
+            width: 100%;
+            max-width: 800px;
+            z-index: 10;
+            border: 1px solid #f0f;
+        }
+        
+        button {
+            background: #000;
+            color: #0ff;
+            border: 1px solid #0ff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 5px #0ff;
+        }
+        
+        button:hover {
+            background: #0ff;
+            color: #000;
+            box-shadow: 0 0 15px #0ff;
+        }
+        
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 150px;
+        }
+        
+        .slider-container label {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #f0f;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 5px;
+            -webkit-appearance: none;
+            background: #0ff;
+            border-radius: 5px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #f0f;
+            cursor: pointer;
+            box-shadow: 0 0 5px #f0f;
+        }
+        
+        .info {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            max-width: 600px;
+            line-height: 1.5;
+            color: #0ff;
+            z-index: 10;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #f0f;
+        }
+        
+        .glitch-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.1;
+            mix-blend-mode: screen;
+            z-index: 5;
+        }
+        
+        .cyberpunk-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.4rem;
+            }
+            
+            .subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            canvas {
+                height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cyberpunk-grid"></div>
+    <div class="glitch-overlay"></div>
+    
+    <div class="container">
+        <h1>Παιδαγωγική Ψηφιακών Τεχνών ΙΙ</h1>
+        <div class="subtitle">Τέχνες και Τεχνολογία στην εκπαίδευση - εργασία 1</div>
+        
+        <div class="canvas-container">
+            <canvas id="glitchCanvas"></canvas>
+        </div>
+        
+        <div class="controls">
+            <button id="regenerateBtn">Regenerate</button>
+            <button id="pauseBtn">Pause</button>
+            
+            <div class="slider-container">
+                <label for="glitchIntensity">Glitch Intensity</label>
+                <input type="range" id="glitchIntensity" min="0" max="100" value="50">
+            </div>
+            
+            <div class="slider-container">
+                <label for="colorSpeed">Color Speed</label>
+                <input type="range" id="colorSpeed" min="0" max="100" value="50">
+            </div>
+            
+            <div class="slider-container">
+                <label for="fractalDetail">Fractal Detail</label>
+                <input type="range" id="fractalDetail" min="1" max="100" value="50">
+            </div>
+        </div>
+        
+        <div class="info">
+            <p>Αυτή η γενετική τέχνη συνδυάζει φράκταλ μαθηματικά με γκλίτς αισθητική. Κάθε επανάληψη δημιουργεί μια μοναδική οπτική εμπειρία. Ρυθμίστε τα controls για να τροποποιήσετε την συμπεριφορά.</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const canvas = document.getElementById('glitchCanvas');
+        const ctx = canvas.getContext('2d');
+        const regenerateBtn = document.getElementById('regenerateBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const glitchIntensitySlider = document.getElementById('glitchIntensity');
+        const colorSpeedSlider = document.getElementById('colorSpeed');
+        const fractalDetailSlider = document.getElementById('fractalDetail');
+        const glitchOverlay = document.querySelector('.glitch-overlay');
+
+        // State variables
+        let isAnimating = true;
+        let startTime = Date.now();
+        let glitchIntensity = 0.5;
+        let colorSpeed = 0.5;
+        let fractalDetail = 50;
+        let glitchElements = [];
+
+        // Initialize canvas size
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            generateGlitchElements();
+        }
+
+        // Generate random glitch elements
+        function generateGlitchElements() {
+            glitchElements = [];
+            const count = 20 + Math.floor(Math.random() * 30);
+            
+            for (let i = 0; i < count; i++) {
+                glitchElements.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    width: 20 + Math.random() * 100,
+                    height: 20 + Math.random() * 100,
+                    speed: 0.5 + Math.random() * 2,
+                    hue: Math.random() * 360,
+                    type: Math.floor(Math.random() * 3)
+                });
+            }
+            
+            // Create glitch overlay effect
+            let overlayHTML = '';
+            for (let i = 0; i < 5; i++) {
+                const hue = Math.random() * 360;
+                overlayHTML += `
+                    <div style="position:absolute; top:0; left:0; width:100%; height:100%; 
+                        background: linear-gradient(${Math.random() * 360}deg, 
+                        hsla(${hue}, 100%, 50%, 0.1), 
+                        hsla(${(hue + 120) % 360}, 100%, 50%, 0.1));
+                        pointer-events:none; mix-blend-mode: overlay;">
+                    </div>
+                `;
+            }
+            glitchOverlay.innerHTML = overlayHTML;
+        }
+
+        // Generate a fractal value for a point
+        function generateFractal(x, y, time) {
+            const scale = 0.003 * (100 - fractalDetail + 1);
+            const detail = 5 + Math.floor(fractalDetail / 10);
+            
+            let nx = x * scale + Math.sin(time * 0.0005) * 2;
+            let ny = y * scale + Math.cos(time * 0.0005) * 2;
+            
+            let value = 0;
+            let amplitude = 0.5;
+            
+            for (let i = 0; i < detail; i++) {
+                value += Math.sin(nx * 10) * Math.cos(ny * 10) * amplitude;
+                nx += value * 0.3;
+                ny += value * 0.3;
+                amplitude *= 0.7;
+            }
+            
+            return value;
+        }
+
+        // Draw the main animation frame
+        function draw() {
+            if (!isAnimating) return;
+            
+            const currentTime = Date.now() - startTime;
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Create gradient background
+            const gradient = ctx.createRadialGradient(
+                width / 2, height / 2, 0,
+                width / 2, height / 2, Math.max(width, height) / 2
+            );
+            
+            gradient.addColorStop(0, `hsl(${(currentTime / 20) % 360}, 80%, 10%)`);
+            gradient.addColorStop(1, `hsl(${(currentTime / 20 + 180) % 360}, 80%, 5%)`);
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw fractal patterns
+            const step = 4;
+            for (let x = 0; x < width; x += step) {
+                for (let y = 0; y < height; y += step) {
+                    if (Math.random() > 0.7) continue; // Skip some pixels for performance
+                    
+                    const value = generateFractal(x, y, currentTime);
+                    const size = Math.abs(value) * step * 2;
+                    
+                    if (size > step * 0.5) {
+                        const hue = (value * 100 + currentTime * colorSpeed * 0.1) % 360;
+                        const saturation = 80 + Math.sin(value * 10) * 20;
+                        const lightness = 40 + Math.cos(value * 5) * 10;
+                        
+                        ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                        
+                        // Apply glitch effect to position
+                        const glitchX = x + (Math.random() - 0.5) * glitchIntensity * 20;
+                        const glitchY = y + (Math.random() - 0.5) * glitchIntensity * 20;
+                        
+                        ctx.fillRect(glitchX, glitchY, size, size);
+                    }
+                }
+            }
+            
+            // Draw glitch elements
+            glitchElements.forEach(element => {
+                const x = element.x + Math.sin(currentTime * 0.001 * element.speed) * 20;
+                const y = element.y + Math.cos(currentTime * 0.001 * element.speed) * 20;
+                
+                ctx.fillStyle = `hsla(${(element.hue + currentTime * 0.1) % 360}, 100%, 50%, 0.7)`;
+                
+                if (element.type === 0) {
+                    // Circle
+                    ctx.beginPath();
+                    ctx.arc(x, y, element.width / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (element.type === 1) {
+                    // Rectangle
+                    ctx.fillRect(x - element.width / 2, y - element.height / 2, element.width, element.height);
+                } else {
+                    // Triangle
+                    ctx.beginPath();
+                    ctx.moveTo(x, y - element.height / 2);
+                    ctx.lineTo(x + element.width / 2, y + element.height / 2);
+                    ctx.lineTo(x - element.width / 2, y + element.height / 2);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            });
+            
+            // Apply scanlines
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            for (let y = 0; y < height; y += 4) {
+                ctx.fillRect(0, y, width, 1);
+            }
+            
+            requestAnimationFrame(draw);
+        }
+
+        // Event listeners
+        regenerateBtn.addEventListener('click', () => {
+            startTime = Date.now();
+            generateGlitchElements();
+        });
+
+        pauseBtn.addEventListener('click', () => {
+            isAnimating = !isAnimating;
+            pauseBtn.textContent = isAnimating ? 'Pause' : 'Play';
+            if (isAnimating) draw();
+        });
+
+        glitchIntensitySlider.addEventListener('input', () => {
+            glitchIntensity = glitchIntensitySlider.value / 100;
+        });
+
+        colorSpeedSlider.addEventListener('input', () => {
+            colorSpeed = colorSpeedSlider.value / 100;
+        });
+
+        fractalDetailSlider.addEventListener('input', () => {
+            fractalDetail = fractalDetailSlider.value;
+        });
+
+        // Initialize and start animation
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        draw();
+    </script>
+</body>
+</html>
